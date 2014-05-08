@@ -15,36 +15,61 @@
 	<script>
 		// JS
 		$(function(){
-			$( "#simplepanel" ).simplepanel();
+			$( "#simplepanel" ).simplepanel({
+			});
 			$("#simplepanelLeft").simplepanel({
-				position: "right"
+				position: "right",
+				mode: "reveal"
 			});
 			$("#simplepanelTop").simplepanel({
 				position: "top"
 			});
-			$("#simplepanelBottom").simplepanel({
-				position: "bottom"
-			});
+			$( ".ui-simple-panel" ).enhanceWithin();
 		});
 	</script>
 	<style>
 		#edit-with-js-bin { display: none !important; }
+		.ui-handle-test {
+			position: absolute;
+			top:0;
+			left:0;
+			width:52px;
+			height:52px;
+		}
 	</style>
 </head>
-<body>
+<body class="ui-body-a">
 	 	<div id="simplepanel">
-	 		<button>BOOM!</button>
+	 		<ul data-role="listview" data-count-theme="b" data-inset="false">
+			    <li><a href="#">Inbox <span class="ui-li-count">12</span></a></li>
+			    <li><a href="#">Outbox <span class="ui-li-count">0</span></a></li>
+			    <li><a href="#">Drafts <span class="ui-li-count">4</span></a></li>
+			    <li><a href="#">Sent <span class="ui-li-count">328</span></a></li>
+			    <li><a href="#">Trash <span class="ui-li-count">62</span></a></li>
+			</ul>
 	 	</div>
 	 	<div id="simplepanelLeft">
-	 		<button>BOOM!</button>
+	 		<ul data-role="listview" data-count-theme="b" data-inset="false">
+			    <li><a href="#">Inbox <span class="ui-li-count">12</span></a></li>
+			    <li><a href="#">Outbox <span class="ui-li-count">0</span></a></li>
+			    <li><a href="#">Drafts <span class="ui-li-count">4</span></a></li>
+			    <li><a href="#">Sent <span class="ui-li-count">328</span></a></li>
+			    <li><a href="#">Trash <span class="ui-li-count">62</span></a></li>
+			</ul>
 	 	</div>
 	 	<div id="simplepanelTop">
-	 		<button>BOOM!</button>
+	 		<ul data-role="listview" data-count-theme="b" data-inset="false">
+			    <li><a href="#">Inbox <span class="ui-li-count">12</span></a></li>
+			    <li><a href="#">Outbox <span class="ui-li-count">0</span></a></li>
+			    <li><a href="#">Drafts <span class="ui-li-count">4</span></a></li>
+			    <li><a href="#">Sent <span class="ui-li-count">328</span></a></li>
+			    <li><a href="#">Trash <span class="ui-li-count">62</span></a></li>
+			</ul>
 	 	</div>
 	 	
 		<div data-role="page">
 		
-			<div data-role="header" data-position="fixed">
+			<div data-role="header">
 				<h1>Issue template</h1>
 			</div><!-- /header -->
 			
