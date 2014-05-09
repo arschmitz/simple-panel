@@ -16,13 +16,17 @@
 		// JS
 		$(function(){
 			$( "#simplepanel" ).simplepanel({
+				"mode": "reveal",
+				"responsive": true
 			});
 			$("#simplepanelLeft").simplepanel({
 				position: "right",
-				mode: "reveal"
+				"mode": "reveal",
+				"responsive": true
 			});
 			$("#simplepanelTop").simplepanel({
-				position: "top"
+				position: "top",
+				"mode": "reveal"
 			});
 			$( ".ui-simple-panel" ).enhanceWithin();
 		});

@@ -9,13 +9,14 @@
 
 $.widget( "mobile.simplepanel", {
 	options: {
-		"size": 280,
+		"size": 220,
 		"threshold": 100,
 		"handle": null,
 		"enhanced": false,
 		"position": "left",
 		"theme": "a",
 		"scroll": false,
+		"responsive": false,
 		"mode": "overlay"
 	},
 	_create: function(){
@@ -42,6 +43,9 @@ $.widget( "mobile.simplepanel", {
 			"orientationchange": "_refresh",
 			"throttledresize": "_refresh"
 		});
+		this._on( this.handle, {
+			"mousedown": "_setDraggable"
+		});
 	},
 	_refresh: function(){
 		this.axis = "x";
@@ -57,13 +61,23 @@ $.widget( "mobile.simplepanel", {
 
 		this[ "_" + this.options.mode + this.options.position ]();
 		this.element.css( this.cssProps );
+		this._setDraggable();
+		this.dragElement.data( "simplepanelref", this.element );
+		this.handle.css( this.handleProps ).appendTo( this.dragElement );
+	},
+	_setDraggable: function() {
+		$( "body" ).find( ":mobile-simplepanel" ).css( "z-index", "-1" );
+		this.dragElement.data( "simplepanelref", this.element );
 		this.dragElement.draggable({
 			"axis": this.axis,
 			"stop": this._dragStop,
 			"containment": this.containment,
-			"handle": this.handle
-		}).data( "simplepanelref", this.element );
-		this.handle.css( this.handleProps ).appendTo( this.dragElement );
+			"handle": this.handle,
+			"drag": this._drag
+		});
+		this.element.css({
+			"z-index": "0"
+		});
 	},
 	_overlaytop: function(){
 		this.dragElement = this.element;
@@ -152,6 +166,20 @@ $.widget( "mobile.simplepanel", {
 			this.handle = $( this.options.handle );
 		}
 	},
+	_drag: function( event, ui ){
+		var widget = $( this ).data( "simplepanelref" ).data("mobileSimplepanel"),
+			offset = $( this ).offset().left;
+		if( widget.options.responsive && widget.options.mode == "reveal" && widget.options.position !== "top" ) {
+			$( this ).css({
+				width: ( widget.options.position == "right" )? widget.windowWidth + offset + "px": widget.windowWidth - offset,
+				"padding-left": ( widget.options.position == "right" )? Math.abs( offset ) + "px": ""
+			});
+		} else if( widget.options.responsive && widget.options.mode == "reveal" ) {
+			$( this ).css({
+				"margin-top": Math.abs( offset ) + "px"
+			});
+		}
+	},
 	_setOptions: function( options ){
 		return this._super( options );
 	},
@@ -172,10 +200,31 @@ $.widget( "mobile.simplepanel", {
 			){
 				props[ direction ] = widget.openPosition;
 				$( this ).animate( props,200 );
+				if( options.responsive && options.position !== "top" && options.mode === "reveal" ) {
+					$( this ).animate({
+						width: widget.windowWidth - options.size,
+						"padding-left": ( widget.options.position == "right" )? options.size + "px": ""
+					},{
+						queue: false,
+						duration: 200
+					});
+				}
 			} else {
 				props[ direction ] = widget.closePosition;
 				$( this ).animate(props,200);
+				if( options.responsive && options.position !== "top" && options.mode === "reveal" ) {
+					$( this ).animate({
+						width: widget.windowWidth,
+						"padding-left": ""
+					},{
+						queue: false,
+						duration: 200
+					});
+				}
 			}
+		}
+		if( options.position == "top" && options.mode == "reveal" ){
+			$( "body")[0].scrollTop = 0;
 		}
 	},
 	open: function(){
