@@ -5,91 +5,300 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet"  href="https://code.jquery.com/mobile/git/jquery.mobile-git.css">
-	<link rel="stylesheet"  href="simple-panel.css"> 
+	<link rel="stylesheet"  href="simple-panel.css">
+	<link rel="stylesheet"  href="demo.css">
+	<link rel="stylesheet"  href="https://rawgit.com/jquery/jquery-ui/master/themes/base/core.css">
+	<link rel="stylesheet"  href="https://rawgit.com/jquery/jquery-ui/master/themes/base/slider.css">
+	<link rel="stylesheet"  href="https://rawgit.com/jquery/jquery-ui/master/themes/base/theme.css">
 	<script src="https://code.jquery.com/jquery-1.10.1.js"></script> 
 	<script src="https://code.jquery.com/mobile/git/jquery.mobile-git.js"></script>
+	<script>
+		$.mobile.slider = "";
+		$.fn.slider = "";
+	</script>
 	<script src="https://rawgit.com/jquery/jquery-ui/master/ui/mouse.js"></script>
 	<script src="https://rawgit.com/jquery/jquery-ui/master/ui/draggable.js"></script>
+	<script src="https://rawgit.com/jquery/jquery-ui/master/ui/slider.js"></script>
 	<script src="https://rawgit.com/furf/jquery-ui-touch-punch/master/jquery.ui.touch-punch.min.js"></script>
 	<script src="simple-panel.js"></script>
 	<script>
 		// JS
 		$(function(){
+			var tracks = [
+				{
+					"artist": "Train",
+					"album": "Train",
+					"song": "Meet Virgina",
+					"thumb": "http://ecx.images-amazon.com/images/I/51L0EbwG4rL._SL500_AA280_.jpg",
+					"audio": "train-meet-virgina.mp3"
+				},
+				{
+					"artist": "Passenger",
+					"album": "All the Little Lights",
+					"song": "Let Her Go",
+					"thumb": "http://ecx.images-amazon.com/images/I/61R2m4%2B3c%2BL._SL500_AA280_.jpg",
+					"audio": "passenger-let-her-go.mp3"
+				},
+				{
+					"artist": "The Decemberists",
+					"album": "The King Is Dead",
+					"song": "Down by the water",
+					"thumb": "http://ecx.images-amazon.com/images/I/619woFzjK6L.jpg",
+					"audio": "the-decemberists-down-by-the-water.mp3"
+				},
+				{
+					"artist": "The Avett Brothers",
+					"album": "The Carpenter",
+					"song": "Live and Die",
+					"thumb": "http://ecx.images-amazon.com/images/I/61UUWvu1HyL._SL500_AA280_.jpg",
+					"audio": "the-avett-brothers-live-and-die.mp3"
+				},
+				{
+					"artist": "Mumford and Sons",
+					"album": "Babel",
+					"song": "The Boxer [feat. Mumford & Sons, Paul Simon]",
+					"thumb": "http://ecx.images-amazon.com/images/I/618uUR0cOtL._SL500_AA280_.jpg",
+					"audio": "mumford-and-sons-the-boxer.mp3"
+				}
+			]
+			var player = $( "#player" );
 			$( "#simplepanel" ).simplepanel({
-				"mode": "reveal",
-				"responsive": true
+				size: "240"
 			});
-			$("#simplepanelLeft").simplepanel({
+			$("#simplepanelRight").simplepanel({
 				position: "right",
+				theme: "b",
+				handle: ".settings-handle",
 				"mode": "reveal",
-				"responsive": true
+				"responsive": ( $( window ).width() > 800 )
 			});
+			$( ".ui-icon-forward, .ui-icon-backward" ).on( "click", function(){
+				changeTrack( $( this ).hasClass( "ui-icon-forward" ) );
+			});
+			function changeTrack( forward, force, trackNumber ){
+				var play,
+					track = player.data( "track" ),
+					next = trackNumber || parseInt( track, 10 ) + ( forward ? 1: -1 );
+					console.log( next  );
+				if( tracks.length - 1 >= next && next >= 0 ){
+					if( !player[0].paused ){
+						console.log( "starting" );
+						play = true;
+					}
+					player[0].src = tracks[ next ].audio;
+					player[0].load();
+					if( play || force ){
+						player[0].play();
+					}
+					player.data( "track", next );
+					$( "#artist-name" ).html( tracks[ next ].artist );
+					$( "#album-name" ).html( tracks[ next ].album );
+					$( ".song-title" ).html( tracks[ next ].song );
+					$( ".album-thumb" )[0].src = tracks[ next ].thumb;
+				}
+			}
 			$("#simplepanelTop").simplepanel({
 				position: "top",
-				"mode": "reveal"
+				"mode": "reveal",
+				size: 410,
+				handle: ".header-handle"
+			});
+			$.each( tracks, function( index, track ){
+				var item = $( "<li data-track='" + index + "'><a></a></li>" );
+
+				item.find( "a" )
+					.append( "<img src='" + track.thumb + "'/>" )
+					.append( "<h2>" + track.song + "</h2>" )
+					.append( "<p>" + track.artist + " - " + track.album + "</p>" );
+
+				$( "#playlist" ).append( item );
+			});
+			$( document ).on( "click", "#playlist li", function(){
+				var track = $( this ).data( "track" );
+
+				changeTrack( null, true, track );
+			});
+			var open = true;
+			$( ".open-playlist-icon").on( "click", function(){
+				$("#simplepanelTop").simplepanel( open ? "open":"close" );
+				open = !open;
+			});
+			var timeout, current;
+			setInterval(function(){
+				if( current !== player[0].currentTime ){
+					$( ".slider" ).slider("option","value",player[0].currentTime);
+					current = player[0].currentTime;
+				}
+				if( !player[0].paused && player[0].duration - 1 <= player[0].currentTime ){
+					clearTimeout( timeout );
+					timeout = setTimeout(function(){
+						changeTrack( true, true );
+					},1000);
+				}
 			});
 			$( ".ui-simple-panel" ).enhanceWithin();
+			$( ".ui-icon-play").on( "click", function(){
+				if( $( this ).hasClass( "ui-icon-play" ) ){
+					player[0].play();
+				} else {
+					player[0].pause();
+				}
+				$( this ).toggleClass( "ui-icon-play ui-icon-pause" );
+			});
+			$( ".player-controls, .now-playing").on( "mousedown", function ( event ){
+				event.stopPropagation();
+			});
+
+			$( ".slider" ).slider({
+				min: 0,
+				max: 100,
+				range: "min"
+			});
+			player.data( "track", 0);
+			player.bind( "loadedmetadata", function(){
+				console.log( player[0].duration )
+				$( ".slider" ).slider({
+					max: player[0].duration
+				});
+
+			})
 		});
 	</script>
-	<style>
-		#edit-with-js-bin { display: none !important; }
-		.ui-handle-test {
-			position: absolute;
-			top:0;
-			left:0;
-			width:52px;
-			height:52px;
-		}
-	</style>
 </head>
 <body class="ui-body-a">
-	 	<div id="simplepanel">
-	 		<ul data-role="listview" data-count-theme="b" data-inset="false">
-			    <li><a href="#">Inbox <span class="ui-li-count">12</span></a></li>
-			    <li><a href="#">Outbox <span class="ui-li-count">0</span></a></li>
-			    <li><a href="#">Drafts <span class="ui-li-count">4</span></a></li>
-			    <li><a href="#">Sent <span class="ui-li-count">328</span></a></li>
-			    <li><a href="#">Trash <span class="ui-li-count">62</span></a></li>
+		<div id="simplepanel">
+			<div class="menu-content" data-role="collapsibleset" data-theme="a" data-inset="false">
+				<div data-role="collapsible">
+				<h2>Mailbox</h2>
+					<ul data-role="listview">
+						<li><a href="index.html">Inbox <span class="ui-li-count">12</span></a></li>
+						<li><a href="index.html">Outbox <span class="ui-li-count">0</span></a></li>
+						<li><a href="index.html">Drafts <span class="ui-li-count">4</span></a></li>
+						<li><a href="index.html">Sent <span class="ui-li-count">328</span></a></li>
+						<li><a href="index.html">Trash <span class="ui-li-count">62</span></a></li>
+					</ul>
+				</div>
+				<div data-role="collapsible">
+					<h2>Calendar</h2>
+					<ul data-role="listview" data-theme="a" data-divider-theme="b">
+						<li data-role="list-divider">Friday, October 8, 2010 <span class="ui-li-count">2</span></li>
+						<li><a href="index.html">
+								<h3>Stephen Weber</h3>
+							<p><strong>You've been invited to a meeting at Filament Group in Boston, MA</strong></p>
+							<p>Hey Stephen, if you're available at 10am tomorrow, we've got a meeting with the jQuery team.</p>
+								<p class="ui-li-aside"><strong>6:24</strong>PM</p>
+						</a></li>
+						<li><a href="index.html">
+							<h3>jQuery Team</h3>
+						<p><strong>Boston Conference Planning</strong></p>
+						<p>In preparation for the upcoming conference in Boston, we need to start gathering a list of sponsors and speakers.</p>
+							<p class="ui-li-aside"><strong>9:18</strong>AM</p>
+						</a></li>
+						<li data-role="list-divider">Thursday, October 7, 2010 <span class="ui-li-count">1</span></li>
+						<li><a href="index.html">
+							<h3>Avery Walker</h3>
+						<p><strong>Re: Dinner Tonight</strong></p>
+						<p>Sure, let's plan on meeting at Highland Kitchen at 8:00 tonight. Can't wait! </p>
+							<p class="ui-li-aside"><strong>4:48</strong>PM</p>
+						</a></li>
+						<li data-role="list-divider">Wednesday, October 6, 2010 <span class="ui-li-count">3</span></li>
+						<li><a href="index.html">
+							<h3>Amazon.com</h3>
+						<p><strong>4-for-3 Books for Kids</strong></p>
+						<p>As someone who has purchased children's books from our 4-for-3 Store, you may be interested in these featured books.</p>
+							<p class="ui-li-aside"><strong>12:47</strong>PM</p>
+						</a></li>
+					</ul>
+				</div>
+				<div data-role="collapsible">
+				<h2>Contacts</h2>
+					<ul data-role="listview" data-autodividers="true" data-theme="a" data-divider-theme="b">
+						<li><a href="index.html">Adam Kinkaid</a></li>
+						<li><a href="index.html">Alex Wickerham</a></li>
+						<li><a href="index.html">Avery Johnson</a></li>
+						<li><a href="index.html">Bob Cabot</a></li>
+						<li><a href="index.html">Caleb Booth</a></li>
+						<li><a href="index.html">Christopher Adams</a></li>
+						<li><a href="index.html">Culver James</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div id="simplepanelRight">
+			<form>
+				<ul data-role="listview">
+					<li>
+						<label for="name2">Text Input:</label>
+						<input type="text" name="name2" id="name2" value="" data-clear-btn="true">
+					</li>
+					<li>
+						<label for="textarea2">Textarea:</label>
+					<textarea cols="40" rows="8" name="textarea2" id="textarea2"></textarea>
+					</li>
+					<li>
+						<label for="flip2">Flip switch:</label>
+						<select name="flip2" id="flip2" data-role="slider">
+							<option value="off">Off</option>
+							<option value="on">On</option>
+						</select>
+					</li>
+					<li>
+						<label for="slider2">Slider:</label>
+						<input type="range" name="slider2" id="slider2" value="0" min="0" max="100" data-highlight="true">
+					</li>
+					<li>
+						<label for="select-choice-1" class="select">Choose shipping method:</label>
+						<select name="select-choice-1" id="select-choice-1">
+							<option value="standard">Standard: 7 day</option>
+							<option value="rush">Rush: 3 days</option>
+							<option value="express">Express: next day</option>
+							<option value="overnight">Overnight</option>
+						</select>
+					</li>
+					<li>
+						<fieldset class="ui-grid-a">
+								<div class="ui-block-a"><button type="submit" class="ui-btn ui-corner-all ui-btn-a">Cancel</button></div>
+								<div class="ui-block-b"><button type="submit" class="ui-btn ui-corner-all ui-btn-a">Submit</button></div>
+						</fieldset>
+					</li>
+				</ul>
+			</form>
+		</div>
+		<div id="simplepanelTop">
+			<ul data-role="listview" data-inset="true" id="playlist">
 			</ul>
-	 	</div>
-	 	<div id="simplepanelLeft">
-	 		<ul data-role="listview" data-count-theme="b" data-inset="false">
-			    <li><a href="#">Inbox <span class="ui-li-count">12</span></a></li>
-			    <li><a href="#">Outbox <span class="ui-li-count">0</span></a></li>
-			    <li><a href="#">Drafts <span class="ui-li-count">4</span></a></li>
-			    <li><a href="#">Sent <span class="ui-li-count">328</span></a></li>
-			    <li><a href="#">Trash <span class="ui-li-count">62</span></a></li>
-			</ul>
-	 	</div>
-	 	<div id="simplepanelTop">
-	 		<ul data-role="listview" data-count-theme="b" data-inset="false">
-			    <li><a href="#">Inbox <span class="ui-li-count">12</span></a></li>
-			    <li><a href="#">Outbox <span class="ui-li-count">0</span></a></li>
-			    <li><a href="#">Drafts <span class="ui-li-count">4</span></a></li>
-			    <li><a href="#">Sent <span class="ui-li-count">328</span></a></li>
-			    <li><a href="#">Trash <span class="ui-li-count">62</span></a></li>
-			</ul>
-	 	</div>
-	 	
+		</div>
 		<div data-role="page">
-		
-			<div data-role="header">
-				<h1>Issue template</h1>
-			</div><!-- /header -->
-			
+			<div class="header-handle ui-simple-panel-handle" data-theme="a" data-role="header">
+				<div data-role="navbar" class="ui-btn-left ui-nodisc-icon player-controls">
+					<ul>
+						<li><a data-icon="backward"></a></li>
+						<li><a data-icon="play"></a></li>
+						<li><a data-icon="forward"></a></li>
+					</ul>
+				</div>
+				<div class="now-playing ui-shadow-inset ui-corner-all">
+					<audio id="player" src="train-meet-virgina.mp3"></audio>
+					<img class="album-thumb" src="http://ecx.images-amazon.com/images/I/51L0EbwG4rL._SL500_AA280_.jpg" width="30px">
+					<div class="song-title">Meet Virgina</div>
+					<div class="band-name">
+						<span id="artist-name">Train</span> - <span id="album-name">Train</span>
+					</div>
+					<div class="open-playlist-icon ui-btn ui-nodisc-icon ui-btn-icon-notext ui-alt-icon ui-icon-bullets"></div>
+					<div class="slider"></div>
+				</div>
+				<h1></h1>
+			</div>	<!-- /header -->
+			<div class="settings-handle ui-btn ui-icon-gear ui-btn-icon-notext ui-simple-panel-handle ui-draggable-handle"></div>
 			<div data-role="content" id="content">
-				
+				<!-- Simple audio playback -->
 				<p>Up in thah county Chundah. Gohd dammah. Auguster over t' 'Roostik You is sum wicked suhmart got in a gaum sawr, yahd Laum Ipsum Ahcadiuh bean suppah, dinnahbucket puckahbrush way up north Saddee unthaw owt mistah man out in th' willie-wacks, whawf nummah anuthah mistah man noseeum bean suppah dinnahbucket wickid decent sumpin' fierce Outta Staydahs. Lobstah paut Chundah. Gohd dammah. ankle biteah idear yahd cubboard stove up bean suppah geez bud rhubaahb. Hum-dingah Moxie sumpin' fierce. Tunk front dooryahd Allen's Coffee Brandy front dooryahd. Loyston-Ahban Bangoah mugup bluebries. Hold'er Newt she's, heddin for da ruhbarb! yessah-bub junkah windah bendah geez bud front dooryahd Moxie anuthah.</p>
 
 				<p>Auguster fellers bookin' it Saddee. Dinnahbucket wreckah muckle riyht on'ta her wicked pissah wintah puckahbrush some wicked Laum Ipsum flatlandas Outta Staydahs, N'Hampshah Yessah Bah Hahbah. Yessah-bub stove-up batrees fish chowdah, Chundah. Gohd dammah. anuthah podunk Bangah naw. Hahd tellin' not knowin' crittah Laum Ipsum way up north got in a gaum junkah swampdonkey hahd tellin' not knowin' Ahcadiuh podunk, suppah moose anuthah gettin' ugly Moxie.</p>
-
 				<p>Over t' dingy fellers gash dang flatlanduhs and their boilin' plates, fish chowdah Katahdin some cunnin anuthah wicked cunnin' gummah Saddee, yut front dooryahd Have a good one. ayuhpawt nummah mummah. Crittah railed 'em gettin' ugly Katahdin some cunnin, podunk sumpin' fierce what a cahd fish chowdah Outta Staydahs from away robin showah You is sum wicked suhmart If you can't stand the wintah you don't deserve the summah front dooryahd, clammin' down cellah queeah.</p>
 
 				<p>Clam chowdah slower than molasses going uphill in January 'Roostik Up in thah county wickid decent Hold'er Newt she's, heddin for da ruhbarb!, Saddee Hold'er Newt she's, heddin for da ruhbarb! Fryeburg Fayah Saddee Chundah. Gohd dammah.. Powrtland cah junkah flatlandas, dingy cubboard door-yahd unthaw smokie. Owt got in a gaum lobstah paut down cellah tunk, well theyah stove up N'Hampshah p'dayduhs up t' camp p'dayduhs clammin' gettin' ugly dooryahd, nummah than a faht can't get theyah from heeyah Ahcadiuh cunnin' moose mummah Sundee cunnin' what a cahd, pig fat slower than molasses going uphill in January N'Hampshah what a cahd clammin' Hold'er Newt she's, heddin for da ruhbarb!.</p>
 
-<!-- end slipsum code -->
-
-				
 			</div><!-- /content -->
 		</div><!-- /page -->
 </body>
