@@ -85,10 +85,10 @@ html body div.slider{
 	margin-left: -150px;
 }
 html body div.slider .ui-slider-handle{
-	top: 0;
-	height: 5px;
+	top: -2px;
+	height: 7px;
 	width: 5px;
-	opacity: 0;
+	margin-left: -6px;
 }
 .player-controls{
 	width: 200px;
@@ -128,10 +128,22 @@ html body div.slider .ui-slider-handle{
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
+.remaining-time{
+	top: 18px;
+	right: 50px;
+	position: absolute;
+	font-size: .7em;
+}
+.elapsed-time{
+	top: 18px;
+	left: 47px;
+	position: absolute;
+	font-size: .7em;
+}
 .open-playlist-icon {
 	position: absolute;
 	top: 0;
-	right: 5px;
+	right: 12px;
 	border: none;
 	background: none !important;
 }

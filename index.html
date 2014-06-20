@@ -10,7 +10,8 @@
 	<link rel="stylesheet"  href="https://rawgit.com/jquery/jquery-ui/master/themes/base/core.css">
 	<link rel="stylesheet"  href="https://rawgit.com/jquery/jquery-ui/master/themes/base/slider.css">
 	<link rel="stylesheet"  href="https://rawgit.com/jquery/jquery-ui/master/themes/base/theme.css">
-	<script src="https://code.jquery.com/jquery-1.10.1.js"></script> 
+	<script src="https://code.jquery.com/jquery-1.10.1.js"></script>
+	<script src="https://rawgit.com/julianshapiro/velocity/master/jquery.velocity.min.js"></script>
 	<script src="https://code.jquery.com/mobile/git/jquery.mobile-git.js"></script>
 	<script>
 		$.mobile.slider = "";
@@ -78,8 +79,8 @@
 			function changeTrack( forward, force, trackNumber ){
 				var play,
 					track = player.data( "track" ),
-					next = trackNumber || parseInt( track, 10 ) + ( forward ? 1: -1 );
-					console.log( next  );
+					next = ( trackNumber  !== undefined )? trackNumber : ( parseInt( track, 10 ) + ( forward ? 1: -1 ) );
+					console.log( trackNumber );
 				if( tracks.length - 1 >= next && next >= 0 ){
 					if( !player[0].paused ){
 						console.log( "starting" );
@@ -91,6 +92,7 @@
 						player[0].play();
 					}
 					player.data( "track", next );
+					$( "#playlist" ).find( ".ui-li-aside" ).remove().end().find( "a" ).removeClass( "ui-btn-active" ).eq( next ).addClass( "ui-btn-active").append( "<span class='ui-li-aside'>Now Playing</span>" );
 					$( "#artist-name" ).html( tracks[ next ].artist );
 					$( "#album-name" ).html( tracks[ next ].album );
 					$( ".song-title" ).html( tracks[ next ].song );
@@ -103,6 +105,16 @@
 				size: 410,
 				handle: ".header-handle"
 			});
+			var updateSlider = true;
+			$( ".slider" ).on( "mousedown",  function(){
+				console.log( "down" );
+				updateSlider = false;
+				$( document ).one( "mouseup",  function(){
+					updateSlider = true;
+					player[0].currentTime = $( ".slider" ).slider( "option", "value" )
+				})
+			})
+			
 			$.each( tracks, function( index, track ){
 				var item = $( "<li data-track='" + index + "'><a></a></li>" );
 
@@ -125,9 +137,14 @@
 			});
 			var timeout, current;
 			setInterval(function(){
-				if( current !== player[0].currentTime ){
+				if( current !== player[0].currentTime && updateSlider ){
 					$( ".slider" ).slider("option","value",player[0].currentTime);
 					current = player[0].currentTime;
+					var time = new Date(null, null, null, null, null, current ).toTimeString().replace(/.*(\d{2}:)(\d{2}:\d{2}).*/, "$2"),
+						elapsed = new Date(null, null, null, null, null, player[0].duration - current ).toTimeString().replace(/.*(\d{2}:)(\d{2}:\d{2}).*/, "$2");
+
+					$( ".elapsed-time" ).html( time );
+					$( ".remaining-time" ).html( "-" + elapsed );
 				}
 				if( !player[0].paused && player[0].duration - 1 <= player[0].currentTime ){
 					clearTimeout( timeout );
@@ -137,6 +154,8 @@
 				}
 			});
 			$( ".ui-simple-panel" ).enhanceWithin();
+			$( "#playlist" ).find( "a" ).eq( 0 ).addClass( "ui-btn-active" ).append( "<span class='ui-li-aside'>Now Playing</span>" );
+
 			$( ".ui-icon-play").on( "click", function(){
 				if( $( this ).hasClass( "ui-icon-play" ) ){
 					player[0].play();
@@ -152,7 +171,8 @@
 			$( ".slider" ).slider({
 				min: 0,
 				max: 100,
-				range: "min"
+				range: "min",
+				step: .01
 			});
 			player.data( "track", 0);
 			player.bind( "loadedmetadata", function(){
@@ -161,7 +181,8 @@
 					max: player[0].duration
 				});
 
-			})
+			});
+			$.fn.animate = $.fn.velocity;
 		});
 	</script>
 </head>
@@ -266,6 +287,7 @@
 		</div>
 		<div id="simplepanelTop">
 			<ul data-role="listview" data-inset="true" id="playlist">
+				<li data-role="list-divider"><h1>Playlist</h1></li>
 			</ul>
 		</div>
 		<div data-role="page">
@@ -285,6 +307,8 @@
 						<span id="artist-name">Train</span> - <span id="album-name">Train</span>
 					</div>
 					<div class="open-playlist-icon ui-btn ui-nodisc-icon ui-btn-icon-notext ui-alt-icon ui-icon-bullets"></div>
+					<div class="elapsed-time">1:12</div>
+					<div class="remaining-time">-3:24</div>
 					<div class="slider"></div>
 				</div>
 				<h1></h1>
